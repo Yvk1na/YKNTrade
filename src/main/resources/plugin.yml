@@ -1,0 +1,20 @@
+name: YknTrade
+version: '1.4.3'
+main: cn.ykntrade.YknTradePlugin
+api-version: '1.21.10'
+description: 玩家之间安全交换物品与 Vault 余额
+authors: [ykn]
+depend: [Vault]
+commands:
+  trade:
+    aliases: [ykntrade]
+    description: 玩家交易与管理员交易记录
+    usage: /trade admin 或 /trade accept <申请ID>
+    permission: ykntrade.use
+permissions:
+  ykntrade.use:
+    description: 允许发起并接受交易
+    default: true
+  ykntrade.admin:
+    description: 允许查看服务器交易记录
+    default: op
