@@ -1,2 +1,16 @@
 # 任一方改变物品或余额后，需要等待多久才能重新确认。
 confirm-wait-seconds: 3
+
+# 消息支持使用 & 颜色代码。
+# request-received 可使用 {requester} 和 {accept}；request-sent 可使用 {target}。
+# 请保留 request-received 中的 {accept}，它会被替换为可点击的接受按钮。
+messages:
+  request-received: '&e<{requester}>向你发起交易申请 {accept}'
+  request-accept-button: '&a<点此接受>'
+  request-accept-hover: '&e点击接受交易'
+  request-sent: '&a已向 {target} 发起交易申请。'
+  request-expired: '&e交易请求已过期'
+  trade-success: '&a交易成功！'
+  trade-cancelled-close: '&e交易已取消：有玩家关闭了交易界面。'
+  trade-cancelled-offline: '&e交易已取消：有玩家离线。'
+  trade-cancelled-shutdown: '&e交易已取消：插件正在关闭。'

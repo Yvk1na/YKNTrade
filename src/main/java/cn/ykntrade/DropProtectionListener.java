@@ -47,6 +47,17 @@ final class DropProtectionListener implements Listener {
         }
     }
 
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void onOwnerPickupCompleted(EntityPickupItemEvent event) {
+        if (!(event.getEntity() instanceof Player player) || event.getRemaining() != 0) {
+            return;
+        }
+        UUID owner = readOwner(event.getItem());
+        if (owner != null && owner.equals(player.getUniqueId())) {
+            clearOwner(event.getItem());
+        }
+    }
+
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onItemMerge(ItemMergeEvent event) {
         UUID sourceOwner = readOwner(event.getEntity());
@@ -65,6 +76,10 @@ final class DropProtectionListener implements Listener {
         if (owner != null) {
             item.getPersistentDataContainer().set(ownerKey, PersistentDataType.STRING, owner.toString());
         }
+    }
+
+    private void clearOwner(Item item) {
+        item.getPersistentDataContainer().remove(ownerKey);
     }
 
     private UUID readOwner(Item item) {

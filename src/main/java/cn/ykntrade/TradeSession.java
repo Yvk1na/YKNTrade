@@ -114,7 +114,7 @@ final class TradeSession {
         Player first = Bukkit.getPlayer(firstId);
         Player second = Bukkit.getPlayer(secondId);
         if (first == null || second == null) {
-            cancel("交易已取消：有玩家离线。");
+            cancel(manager.messages().tradeCancelledOffline());
             return;
         }
         first.openInventory(inventories.get(firstId));
@@ -252,7 +252,7 @@ final class TradeSession {
         }
     }
 
-    void cancel(String reason) {
+    void cancel(Component reason) {
         if (ended) {
             return;
         }
@@ -269,7 +269,7 @@ final class TradeSession {
             Player player = Bukkit.getPlayer(playerId);
             if (player != null) {
                 giveItems(player, returned.get(playerId));
-                player.sendMessage(Component.text(reason, NamedTextColor.YELLOW));
+                player.sendMessage(reason);
             } else if (hasAnyItem(returned.get(playerId))) {
                 manager.plugin().getLogger().severe("无法向离线玩家 " + playerId + " 退回交易物品。");
             }
@@ -292,7 +292,7 @@ final class TradeSession {
         Player second = Bukkit.getPlayer(secondId);
         if (first == null || second == null) {
             executing = false;
-            cancel("交易已取消：有玩家离线。");
+            cancel(manager.messages().tradeCancelledOffline());
             return;
         }
 
@@ -318,8 +318,8 @@ final class TradeSession {
 
         giveItems(first, finalOffers.get(secondId));
         giveItems(second, finalOffers.get(firstId));
-        first.sendMessage(Component.text("交易成功！", NamedTextColor.GREEN));
-        second.sendMessage(Component.text("交易成功！", NamedTextColor.GREEN));
+        first.sendMessage(manager.messages().tradeSuccess());
+        second.sendMessage(manager.messages().tradeSuccess());
     }
 
     private boolean transferBalances(Player first, Player second, double firstAmount, double secondAmount) {

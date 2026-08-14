@@ -4,8 +4,6 @@ import io.papermc.paper.event.packet.UncheckedSignChangeEvent;
 import io.papermc.paper.math.Position;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
-import net.kyori.adventure.text.event.ClickEvent;
-import net.kyori.adventure.text.event.HoverEvent;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import net.milkbowl.vault.economy.Economy;
@@ -54,6 +52,7 @@ final class TradeManager implements Listener {
 
     private final YknTradePlugin plugin;
     private final Economy economy;
+    private final TradeMessages messages;
     private final TradeHistory tradeHistory;
     private final long confirmWaitTicks;
     private final Map<UUID, TradeRequest> requestsByTarget = new HashMap<>();
@@ -67,6 +66,7 @@ final class TradeManager implements Listener {
     TradeManager(YknTradePlugin plugin, Economy economy) {
         this.plugin = plugin;
         this.economy = economy;
+        this.messages = new TradeMessages(plugin);
         this.confirmWaitTicks = Math.max(1, plugin.getConfig().getLong("confirm-wait-seconds", 3)) * 20L;
         this.tradeHistory = new TradeHistory(plugin);
         Bukkit.getScheduler().runTaskTimer(plugin, tradeHistory::deleteExpired,
@@ -79,6 +79,10 @@ final class TradeManager implements Listener {
 
     Economy economy() {
         return economy;
+    }
+
+    TradeMessages messages() {
+        return messages;
     }
 
     long confirmWaitTicks() {
@@ -162,12 +166,8 @@ final class TradeManager implements Listener {
         requestsByRequester.put(requester.getUniqueId(), request);
         requestCooldowns.put(requester.getUniqueId(), request.expiresAtMillis());
 
-        Component accept = Component.text("<点此接受>", NamedTextColor.GREEN)
-                .clickEvent(ClickEvent.runCommand("/ykntrade accept " + request.token()))
-                .hoverEvent(HoverEvent.showText(Component.text("点击接受交易", NamedTextColor.YELLOW)));
-        target.sendMessage(Component.text("<" + requester.getName() + ">向你发起交易申请 ", NamedTextColor.YELLOW)
-                .append(accept));
-        requester.sendMessage(Component.text("已向 " + target.getName() + " 发起交易申请。", NamedTextColor.GREEN));
+        target.sendMessage(messages.requestReceived(requester.getName(), request.token()));
+        requester.sendMessage(messages.requestSent(target.getName()));
 
         Bukkit.getScheduler().runTaskLater(plugin, () -> expireRequest(request), REQUEST_LIFETIME_TICKS);
     }
@@ -302,7 +302,7 @@ final class TradeManager implements Listener {
                 return;
             }
             view.session().captureOffer(view.viewerId());
-            view.session().cancel("交易已取消：有玩家关闭了交易界面。");
+            view.session().cancel(messages.tradeCancelledClose());
         }
     }
 
@@ -312,7 +312,7 @@ final class TradeManager implements Listener {
         ignoredTradeCloses.remove(event.getPlayer().getUniqueId());
         TradeSession session = sessionsByPlayer.get(event.getPlayer().getUniqueId());
         if (session != null && !session.isEnded()) {
-            session.cancel("交易已取消：有玩家离线。");
+            session.cancel(messages.tradeCancelledOffline());
         }
         removeRequestsInvolving(event.getPlayer().getUniqueId());
     }
@@ -611,7 +611,7 @@ final class TradeManager implements Listener {
         if (!removed) {
             return;
         }
-        Component message = Component.text("交易请求已过期", NamedTextColor.YELLOW);
+        Component message = messages.requestExpired();
         Player requester = Bukkit.getPlayer(request.requester());
         Player target = Bukkit.getPlayer(request.target());
         if (requester != null) {
@@ -624,7 +624,7 @@ final class TradeManager implements Listener {
 
     void shutdown() {
         for (TradeSession session : new ArrayList<>(sessionsById.values())) {
-            session.cancel("交易已取消：插件正在关闭。");
+            session.cancel(messages.tradeCancelledShutdown());
         }
         requestsByTarget.clear();
         requestsByRequester.clear();

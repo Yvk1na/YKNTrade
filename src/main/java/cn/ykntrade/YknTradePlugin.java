@@ -16,6 +16,8 @@ public final class YknTradePlugin extends JavaPlugin {
     @Override
     public void onEnable() {
         saveDefaultConfig();
+        getConfig().options().copyDefaults(true);
+        saveConfig();
 
         RegisteredServiceProvider<Economy> registration =
                 getServer().getServicesManager().getRegistration(Economy.class);

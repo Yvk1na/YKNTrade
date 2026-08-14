@@ -1,5 +1,5 @@
 name: YknTrade
-version: '1.4.3'
+version: '1.4.5'
 main: cn.ykntrade.YknTradePlugin
 api-version: '1.21.10'
 description: 玩家之间安全交换物品与 Vault 余额
